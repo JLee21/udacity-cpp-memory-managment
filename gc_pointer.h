@@ -145,15 +145,28 @@ Pointer<T, size>::Pointer(T *t)
     // first, try to find if we are already using "addr"
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(t);
-    // add a new PtrDetails instance to refCounter.
-    // refContainer.emplace_front();
+    cout << "p->memPtr=" << p->memPtr << endl;
+    if (p->memPtr == t)
+    {
+        cout << "Already using the memory address" << endl;
+        // update PtrDetails<T>'s refCount
+        cout << p->refcount << endl;
+    }
+    else
+    {
+        cout << "Not using the memory address" << endl;
+        // FIXME:
+        // add a new PtrDetails instance to refCounter.
+        PtrDetails<T> pd(t);
+        // refContainer.push_back(pd);
+    }
 }
 
 // Copy constructor.
 template <class T, int size>
 Pointer<T, size>::Pointer(const Pointer &ob)
 {
-    std::cout << "I am copy constructoring..." << ob.addr << "\n";
+    std::cout << "\nI am copy constructoring..." << ob.addr << "\n";
 
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(ob.addr);
@@ -163,6 +176,23 @@ Pointer<T, size>::Pointer(const Pointer &ob)
     // Lab: References Project Lab (maybe)
 
     // increment ref count
+    if (p->memPtr == ob.addr)
+    {
+        cout << "Already using the memory address" << endl;
+        // update PtrDetails<T>'s refCount
+        cout << p->refcount << endl;
+    }
+    else
+    {
+        cout << "Not using the memory address" << endl;
+        // FIXME:
+        // add a new PtrDetails instance to refCounter.
+        PtrDetails<T> pd(ob.addr);
+        cout << "pd.memPtr=" << pd.memPtr << endl;
+        cout << "refContainer.size()=" << refContainer.size() << endl;
+
+        refContainer.push_back(pd);
+    }
 
     // decide whether it is an array
 }
@@ -226,16 +256,15 @@ bool Pointer<T, size>::collect()
 template <class T, int size>
 T *Pointer<T, size>::operator=(T *t)
 {
-
     // TODO: Implement operator==
     // LAB: Smart Pointer Project Lab
+    // maybe check https://knowledge.udacity.com/questions/53363
 }
 
 // Overload assignment of Pointer to Pointer.
 template <class T, int size>
 Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv)
 {
-
     // TODO: Implement operator==
     // LAB: Smart Pointer Project Lab
     // Lab: References Project Lab (maybe)
@@ -284,17 +313,22 @@ void Pointer<T, size>::showlist()
 }
 
 // Find a pointer in refContainer.
-// *** Return an iterator or maybe an iterator element?
+// *** Return an iterator or maybe an iterator's element?
 template <class T, int size>
 typename std::list<PtrDetails<T>>::iterator
 Pointer<T, size>::findPtrInfo(T *ptr)
 {
     typename std::list<PtrDetails<T>>::iterator p;
 
-    // Find ptr in refContainer.
+    // Maybe find ptr in refContainer.
     for (p = refContainer.begin(); p != refContainer.end(); p++)
         if (p->memPtr == ptr)
+        {
+            // cout << "DID FIND PNTR" << endl;
             return p;
+        }
+    // Else, return just p?
+    // cout << "DID NOT FIND PNTR" << endl;
     return p;
 }
 

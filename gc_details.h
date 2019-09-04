@@ -1,6 +1,18 @@
 #include <iostream>  // remove me
 using namespace std; // remove me
 
+/*
+         foreground background
+black        30         40
+red          31         41
+green        32         42
+yellow       33         43
+blue         34         44
+magenta      35         45
+cyan         36         46
+white        37         47
+*/
+
 // This class defines an element that is stored
 // in the garbage collection information list.
 template <class T>
@@ -16,14 +28,13 @@ public:
     // If memPtr is pointing to an allocated, size of array
     unsigned arraySize;
 
-    PtrDetails(T *memPtr_)
+    PtrDetails(T *memPtr_) : memPtr(memPtr_)
     {
         // TODO: Implement PtrDetails
         // Pointer Project LAB
 
-        // Check if we are creating another reference to an allocated memory
         // cout << "memPtr=" << memPtr->addr << endl;
-        cout << "memPtr=" << memPtr_ << endl;
+        cout << "\033[36mConstructing PtrDetails memPtr=" << memPtr_ << "\033[0m\n";
     }
 };
 
