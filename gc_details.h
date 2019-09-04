@@ -3,7 +3,7 @@
 template <class T>
 class PtrDetails
 {
-  public:
+public:
     unsigned refcount; // current reference count
     T *memPtr;         // pointer to allocated memory
 

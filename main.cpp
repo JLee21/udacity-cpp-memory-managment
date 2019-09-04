@@ -1,8 +1,9 @@
 #include "gc_pointer.h"
+#include <list> // remove me
 // #include "LeakTester.h"
 
-#include <iostream>
-using namespace std;
+#include <iostream>  // remove me
+using namespace std; // remove me
 
 int main()
 {
@@ -22,7 +23,8 @@ int main()
     Pointer<int> p4 = new int(5);
     Pointer<int> p5 = p4;
 
-
+    // Basics of a List and Iterator
+    std::list<int> l = [ 0, 1, 2 ];
 
     return 0;
 }
