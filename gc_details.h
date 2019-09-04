@@ -6,16 +6,14 @@ class PtrDetails
   public:
     unsigned refcount; // current reference count
     T *memPtr;         // pointer to allocated memory
+
     /* isArray is true if memPtr points
     to an allocated array. It is false
     otherwise. */
     bool isArray; // true if pointing to array
-    /* If memPtr is pointing to an allocated
-    array, then arraySize contains its size */
+
+    // If memPtr is pointing to an allocated
     unsigned arraySize; // size of array
-    // Here, mPtr points to the allocated memory.
-    // If this is an array, then size specifies
-    // the size of the array.
 
     PtrDetails(void)
     {
