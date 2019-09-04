@@ -1,3 +1,6 @@
+#include <iostream>  // remove me
+using namespace std; // remove me
+
 // This class defines an element that is stored
 // in the garbage collection information list.
 template <class T>
@@ -7,18 +10,20 @@ public:
     unsigned refcount; // current reference count
     T *memPtr;         // pointer to allocated memory
 
-    /* isArray is true if memPtr points
-    to an allocated array. It is false
-    otherwise. */
-    bool isArray; // true if pointing to array
+    // true if pointing to array
+    bool isArray;
 
-    // If memPtr is pointing to an allocated
-    unsigned arraySize; // size of array
+    // If memPtr is pointing to an allocated, size of array
+    unsigned arraySize;
 
-    PtrDetails(void)
+    PtrDetails(T *memPtr_)
     {
         // TODO: Implement PtrDetails
         // Pointer Project LAB
+
+        // Check if we are creating another reference to an allocated memory
+        // cout << "memPtr=" << memPtr->addr << endl;
+        cout << "memPtr=" << memPtr_ << endl;
     }
 };
 

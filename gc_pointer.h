@@ -38,6 +38,9 @@ private:
 
     // Return an iterator to PtrDetails in refContainer.
     // *** What does this mean??
+    // NOTE
+    // "typename" is used to tell the class that "std::list<PtrDetails<T>>::iterator"
+    // is a type and not some static member of "class" "std::list<PtrDetails<T>>"
     typename std::list<PtrDetails<T>>::iterator findPtrInfo(T *ptr);
 
 public:
@@ -81,6 +84,7 @@ public:
 
     // Conversion function to T *.
     operator T *() { return addr; }
+
     // Return an Iter to the start of the allocated memory.
     Iter<T> begin()
     {
@@ -101,10 +105,13 @@ public:
             _size = 1;
         return Iter<T>(addr + _size, addr, addr + _size);
     }
+
     // Return the size of refContainer for this type of Pointer.
     static int refContainerSize() { return refContainer.size(); }
+
     // A utility function that displays refContainer.
     static void showlist();
+
     // Clear refContainer when program exits.
     static void shutdown();
 };
@@ -118,7 +125,6 @@ template <class T, int size>
 bool Pointer<T, size>::first = true;
 
 // Constructor for both initialized and uninitialized objects.
-// -> see class interface
 template <class T, int size>
 Pointer<T, size>::Pointer(T *t)
 {
@@ -133,13 +139,21 @@ Pointer<T, size>::Pointer(T *t)
     if (size)
         arraySize = size;
     isArray = true;
+
+    addr = t;
+
+    // first, try to find if we are already using "addr"
+    typename std::list<PtrDetails<T>>::iterator p;
+    p = findPtrInfo(t);
+    // add a new PtrDetails instance to refCounter.
+    // refContainer.emplace_front();
 }
 
 // Copy constructor.
 template <class T, int size>
 Pointer<T, size>::Pointer(const Pointer &ob)
 {
-    std::cout << "I am copy constructoring..." << addr << "\n";
+    std::cout << "I am copy constructoring..." << ob.addr << "\n";
 
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(ob.addr);
@@ -242,16 +256,23 @@ template <class T, int size>
 void Pointer<T, size>::showlist()
 {
     typename std::list<PtrDetails<T>>::iterator p;
-    std::cout << "refContainer<" << typeid(T).name() << ", " << size << ">:\n";
-    std::cout << "memPtr refcount value\n ";
+    std::cout << "===========================\n";
+    std::cout << "refContainer<" << typeid(T).name() << ", " << size << ">:\n\n";
+    std::cout << "memPtr refcount value\n";
     if (refContainer.begin() == refContainer.end())
     {
-        std::cout << " Container is empty!\n\n ";
+        std::cout << "-->Container is empty!\n\n ";
     }
+
+    // Else, refContainer is full of data
     for (p = refContainer.begin(); p != refContainer.end(); p++)
     {
+        // point to the memory address that memPtr is holding,
+        // then dereference to get the value at that address
         std::cout << "[" << (void *)p->memPtr << "]"
                   << " " << p->refcount << " ";
+
+        // If p does points to a valid memory address, then derefernce it
         if (p->memPtr)
             std::cout << " " << *p->memPtr;
         else
@@ -259,14 +280,17 @@ void Pointer<T, size>::showlist()
         std::cout << std::endl;
     }
     std::cout << std::endl;
+    std::cout << "===========================\n";
 }
 
 // Find a pointer in refContainer.
+// *** Return an iterator or maybe an iterator element?
 template <class T, int size>
 typename std::list<PtrDetails<T>>::iterator
 Pointer<T, size>::findPtrInfo(T *ptr)
 {
     typename std::list<PtrDetails<T>>::iterator p;
+
     // Find ptr in refContainer.
     for (p = refContainer.begin(); p != refContainer.end(); p++)
         if (p->memPtr == ptr)
