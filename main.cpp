@@ -24,6 +24,48 @@ typename std::list<int>::iterator findIt()
     return std::end(l);
 }
 
+class Details
+{
+public:
+    int var;
+    Details(int var) : var(var){};
+};
+
+class Tester
+{
+private:
+    static std::list<Details> myList;
+    int myvar;
+
+public:
+    Tester(int myvar) : myvar(myvar)
+    {
+        Details d(myvar);
+        myList.push_back(d);
+    };
+    void add(Details foo);
+    void print();
+};
+
+// Init Static
+std::list<Details> Tester::myList;
+
+void Tester::add(Details foo)
+{
+    myList.push_back(foo);
+}
+
+void Tester::print()
+{
+    cout << "Size=" << myList.size() << endl;
+}
+
+// Tester::Tester(int foo)
+// {
+//     // int foo = 4;
+//     myList.push_back(foo);
+// };
+
 int main()
 {
     // Pointer<int> p = new int(19);
@@ -39,13 +81,22 @@ int main()
 
     cout << "===========================\n";
     cout << "\033[35mExample of Copy Constructor\033[0m\n";
-    Pointer<float, 1> p4 = new float(5);
-    Pointer<float, 1> p5 = p4;
+    Pointer<float> p4 = new float(5);
+    Pointer<float> p5 = new float(5);
+    // Pointer<float, 1> p5 = p4;
+    // Pointer<float, 1> p5 = p4;
+    p4.showlist();
     cout << "===========================\n";
 
-    // // List example
+    // List example
     // p5.showlist();
     // cout << "refContainerSize=" << p5.refContainerSize();
+    // int foo = 5;
+    // Tester t(foo);
+    // Tester t2(foo);
+    // t.add(foo);
+    // t.add(foo);
+    // t.print();
 
     // // Basics of a List and Iterator
     // cout << "\n\n\n\n";
@@ -54,7 +105,7 @@ int main()
     // cout << "findIt() " << *it << endl;
 
     // // PtrDetails
-    Pointer<int> foo = new int(19);
+    // Pointer<int> foo = new int(19);
     // Pointer<int> foo2 = new int(19);
     // Pointer<int> foo3 = new int[5];
     // PtrDetails<int> pd2(foo);
@@ -64,11 +115,12 @@ int main()
     // cout << "*foo3=" << *foo3 << endl;
     // // cout << pd4.isArray << pd4.addr << endl;
 
-    Pointer<int> stalls = new int(19);
-    std::list<PtrDetails<int>> refContainer;
-    PtrDetails<int> pd(stalls);
-    refContainer.push_back(pd);
-    // Does NOT stall at 100% CPU
+    // Testing an add too a list
+    // Pointer<int> stalls = new int(19);
+    // std::list<PtrDetails<int>> refContainer;
+    // PtrDetails<int> pd(stalls);
+    // refContainer.push_back(pd);
+    // // Does NOT stall at 100 % CPU
 
     return 0;
 }

@@ -28,12 +28,11 @@ public:
     // If memPtr is pointing to an allocated, size of array
     unsigned arraySize;
 
-    PtrDetails(T *memPtr_) : memPtr(memPtr_)
+    // PtrDetails(T *memPtr_) : memPtr(memPtr_)
+    PtrDetails(T *memPtr_)
     {
         // TODO: Implement PtrDetails
         // Pointer Project LAB
-
-        // cout << "memPtr=" << memPtr->addr << endl;
         cout << "\033[36mConstructing PtrDetails memPtr=" << memPtr_ << "\033[0m\n";
     }
 };
