@@ -20,6 +20,7 @@ private:
     // refContainer maintains the garbage collection list.
     // static that all Pointer objects will reference the same exact instance
     // of refContainer.
+    //
     static std::list<PtrDetails<T>> refContainer;
 
     // addr points to the allocated memory to which
@@ -49,9 +50,11 @@ public:
 
     // Empty constructor
     // NOTE: templates aren't able to have prototypes with default arguments
-    // *** Why would we want a protoypte?
+    // *** Why would we want a prototype?
     // this is why constructor is designed like this:
+    // this line is for allowing the second line, the
     Pointer() { Pointer(NULL); }
+    // want we want ultimately just want this
     Pointer(T *);
 
     // Copy constructor.
@@ -72,9 +75,10 @@ public:
 
     // Return a reference to the object pointed
     // to by this Pointer.
-    // *** Does that then equate to --> T &fooref = *addr;
-    // *** Where the value at address "addr" is passed by reference to fooref?
+    // This overloaded operator is like a proxy
     T &operator*() { return *addr; }
+    // Pointer p();
+    // *pd
 
     // Return the address being pointed to.
     T *operator->() { return addr; }
@@ -129,6 +133,7 @@ bool Pointer<T, size>::first = true;
 template <class T, int size>
 Pointer<T, size>::Pointer(T *t)
 {
+    addr = t;
     // Register shutdown() as an exit function.
     if (first)
         atexit(shutdown);
@@ -145,9 +150,7 @@ Pointer<T, size>::Pointer(T *t)
     else
         isArray = false;
 
-    addr = t;
-
-    // first, try to find if we are already using "addr"
+    // First, try to find if we are already using "addr"
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(t);
     cout << "p->memPtr=" << p->memPtr << endl;
@@ -160,22 +163,25 @@ Pointer<T, size>::Pointer(T *t)
     else
     {
         cout << "Not using the memory address... so creating" << endl;
-        // FIXME:
         // add a new PtrDetails instance to refCounter.
         PtrDetails<T> pd(t);
         cout << "refContainerSize Before=" << refContainerSize() << endl;
-        refContainer.push_back(pd);
+        refContainer.emplace_back(pd);
         cout << "refContainerSize After=" << refContainerSize() << endl;
+        // at this point, ~pd is called
+        typename std::list<PtrDetails<T>>::iterator p;
+        p = refContainer.begin();
+        cout << "refContainer now has one element that points to=" << p->memPtr << "\trefcount=" << p->refcount << endl;
     }
+    // *** At this point, pd is destructured
 }
 
 // Copy constructor.
 template <class T, int size>
 Pointer<T, size>::Pointer(const Pointer &ob)
 {
-    std::cout << "\nI am copy constructoring..." << ob.addr << "\n";
-    PtrDetails<T> pd(ob.addr);
-    refContainer.push_back(pd);
+    std::cout << "\nCOPYING Pointer=..." << ob.addr << "\n";
+    addr = ob.addr;
 
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(ob.addr);
@@ -187,18 +193,19 @@ Pointer<T, size>::Pointer(const Pointer &ob)
     // increment ref count
     if (p->memPtr == ob.addr)
     {
-        cout << "Already using the memory address" << endl;
         // update PtrDetails<T>'s refCount
-        cout << p->refcount << endl;
+        (p->refcount)++;
+        cout << "Already using the memory address so the refcount is now " << p->refcount << endl;
     }
     else
     {
         cout << "Not using the memory address" << endl;
         // add a new PtrDetails instance to refCounter.
         PtrDetails<T> pd(ob.addr);
+        cout << "Adding a new PtrDeatils to refContainer" << endl;
         cout << "pd.memPtr=" << pd.memPtr << endl;
         cout << "refContainer.size()=" << refContainer.size() << endl;
-        refContainer.push_back(pd);
+        refContainer.emplace_back(pd);
     }
 
     // decide whether it is an array
@@ -208,34 +215,44 @@ Pointer<T, size>::Pointer(const Pointer &ob)
 template <class T, int size>
 Pointer<T, size>::~Pointer()
 {
-    cout << "I am destructoring..." << addr;
+    cout << "\033[34m==============~Pointer()==============START\033[0m\n";
+    //
+    typename std::list<PtrDetails<T>>::iterator pit;
+    pit = refContainer.begin();
+    cout << "refContainer has one element that points to=" << pit->memPtr << "\tand the refcount=" << pit->refcount << endl;
+    //
+
     if (isArray)
         cout << " WHICH IS ARRAY";
 
-    // // TODO: Implement Pointer destructor
-    // // Lab: New and Delete Project Lab
+    // TODO: Implement Pointer destructor
+    // Lab: New and Delete Project Lab
 
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(addr);
 
     // decrement ref count
     (p->refcount)--;
+    cout << "(p->refcount)--" << endl;
+    cout << "refContainer has one element that points to=" << pit->memPtr << "\tand the refcount=" << pit->refcount << endl;
 
     // Collect garbage when a pointer goes out of scope.
+    bool memfreed = collect();
+    cout << " was memoryfreed?=" << memfreed << endl;
 
     // TIP: For real use, you might want to collect unused memory less frequently,
     // such as after refContainer has reached a certain size, after a certain number of Pointers have gone out of scope,
     // or when memory is low.
-    std::cout << "... and done destructing\n";
+    cout << "\033[34m==============~Pointer()==============END\033[0m\n";
 }
 
 // Collect garbage. Returns true if at least
 // one object was freed.
+// When to call collect? One option, tie it to any delete.
 template <class T, int size>
 bool Pointer<T, size>::collect()
 {
-    std::cout << "I am collecting...";
-
+    cout << "\033[36m==============collect()==============START\033[0m\n";
     // TODO: Implement collect function
     // LAB: New and Delete Project Lab
     // Note: collect() will be called in the destructor
@@ -248,15 +265,46 @@ bool Pointer<T, size>::collect()
         for (p = refContainer.begin(); p != refContainer.end(); p++)
         {
             // If in-use, skip.
+            // *** how to tell if in-use? By looking at refcount
+            cout << "p->refcount " << p->refcount << endl;
+
+            if (p->refcount > 0)
+            {
+                cout << "p->refcount > 0 ... continue...\n";
+                continue;
+            }
 
             // Remove unused entry from refContainer.
+            // *** How to do this?
+            // *** Do I make a copy of it first and then? No.
+            // since we have refCon, we can use erase, maybe remove
+            // this will call PtrDetails destructor
+            cout << "Erasing pointer=" << p->memPtr << endl;
+            // at this point, program fails b/c it says p has already been deleted.
+            cout << "refContainer size=" << refContainerSize() << endl;
+            refContainer.erase(p);
+            if (p->memPtr)
+            {
+                if (p->isArray)
+                {
+                    delete[] p->memPtr;
+                }
+                else
+                {
+                    delete p->memPtr;
+                }
+                memfreed = true;
+            }
+            // p is not longer valid, we can't use it anymore
+            cout << "Are we at the end of refContainer = " << (p != refContainer.end()) << endl;
 
             // Free memory unless the Pointer is null.
-
+            // *** How to do this? std::remove()
             // Restart the search.
             break;
         }
     } while (p != refContainer.end());
+    cout << "\033[36m==============collect()==============END\033[0m\n";
     return memfreed;
 }
 
@@ -306,7 +354,7 @@ void Pointer<T, size>::showlist()
     {
         // point to the memory address that memPtr is holding,
         // then dereference to get the value at that address
-        std::cout << "[" << (void *)p->memPtr << "]"
+        std::cout << "address=" << (void *)p->memPtr
                   << " refcount=" << p->refcount << " ";
 
         // If p does points to a valid memory address, then derefernce it
@@ -332,11 +380,11 @@ Pointer<T, size>::findPtrInfo(T *ptr)
     for (p = refContainer.begin(); p != refContainer.end(); p++)
         if (p->memPtr == ptr)
         {
-            // cout << "DID FIND PNTR" << endl;
+            cout << "DID FIND PNTR" << endl;
             return p;
         }
     // Else, return just p?
-    // cout << "DID NOT FIND PNTR" << endl;
+    cout << "DID NOT FIND PNTR" << endl;
     return p;
 }
 
@@ -344,6 +392,8 @@ Pointer<T, size>::findPtrInfo(T *ptr)
 template <class T, int size>
 void Pointer<T, size>::shutdown()
 {
+    cout << "\033[33mShutting Down!\033[0m\n";
+
     if (refContainerSize() == 0)
         return; // list is empty
     typename std::list<PtrDetails<T>>::iterator p;

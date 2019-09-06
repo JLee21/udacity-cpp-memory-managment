@@ -1,6 +1,6 @@
 #include "gc_pointer.h"
 #include <list> // remove me
-// #include "LeakTester.h"
+#include "LeakTester.h"
 
 #include <iostream>  // remove me
 using namespace std; // remove me
@@ -23,6 +23,16 @@ typename std::list<int>::iterator findIt()
     // as suggested from Sasha
     return std::end(l);
 }
+
+class DetailsPtr
+{
+public:
+    int *var;
+    DetailsPtr(int *var_)
+    {
+        var = var_;
+    };
+};
 
 class Details
 {
@@ -79,14 +89,68 @@ int main()
     // cout << "p2.collect() " << p2.collect() << endl;
     // cout << "p3.collect() " << p3.collect() << endl;
 
-    cout << "===========================\n";
-    cout << "\033[35mExample of Copy Constructor\033[0m\n";
+    cout << "\033[35m==============Example of Copy Constructor==============\033[0m\n";
     Pointer<float> p4 = new float(5);
     Pointer<float> p5 = new float(5);
-    // Pointer<float, 1> p5 = p4;
-    // Pointer<float, 1> p5 = p4;
+    Pointer<float> p6 = p4;
     p4.showlist();
-    cout << "===========================\n";
+    cout << "\033[35m==============Example of Copy Constructor==============\033[0m\n";
+
+    cout << "\033[35m==============Example of Deleting==============\033[0m\n";
+
+    // With Class and List class Ptr
+    // class Ptr
+    // {
+    // public:
+    //     int *addr;
+    //     Ptr(int *addr_)
+    //     {
+    //         cout << "Construct=" << addr_ << endl;
+    //         addr = addr_;
+    //     };
+    //     Ptr(const Ptr &obj)
+    //     {
+    //         cout << "Copy Construct=" << obj.addr << endl;
+    //         addr = obj.addr;
+    //     };
+    //     ~Ptr()
+    //     {
+    //         delete addr;
+    //     }
+    // };
+
+    // std::list<Ptr> list;
+    // Ptr dp = new int(4);
+    // list.push_back(dp);
+
+    // With Class No List
+    // Ptr dp = new int(4);
+    // Ptr copy = dp;
+    // cout << "dp=" << dp.addr << endl;
+    // cout << "copy=" << copy.addr << endl;
+    // delete dp.addr;
+    // cout << "deleted dp" << endl;
+    // delete copy.addr;
+    // cout << "deleted copy" << endl;
+
+    /*
+    OUTPUT
+    dp=0x7f9d55c00690
+    copy=0x7f9d55c00690
+    compiled.o(8631,0x113c535c0) malloc: *** error for object 0x7f9d55c00690: pointer being freed was not allocated
+    compiled.o(8631,0x113c535c0) malloc: *** set a breakpoint in malloc_error_break to debug
+    ./make: line 4:  8631 Abort trap: 6           ./compiled.o
+    */
+
+    // Without Class
+    // int *dp = new int(5);
+    // int *copy = dp;
+    // delete dp;
+    // cout << "deleted dp" << endl;
+    // delete copy;
+    // cout << "deleted copy" << endl;
+
+    cout << "\033[35m==============Example of Deleting==============\033[0m\n";
 
     // List example
     // p5.showlist();
