@@ -143,14 +143,14 @@ Pointer<T, size>::Pointer(T *t)
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(t);
     // add a new PtrDetails instance to refCounter.
-    PtrDetails<T> pd(t);
+    PtrDetails<T> pd(t, size);
     cout << "refContainerSize Before=" << refContainerSize() << endl;
     refContainer.emplace_back(pd);
     cout << "refContainerSize After=" << refContainerSize() << endl;
     // at this point, ~pd is called
-    p = refContainer.begin();
-    cout << "refContainer now has one element that points to=" << p->memPtr << "\trefcount=" << p->refcount << endl;
-    // *** At this point, pd is destructured
+    p = refContainer.end();
+    cout << "refContainer now has an element that points to=" << p->memPtr << "\trefcount=" << p->refcount << endl;
+    // At this point, pd is destructured
 }
 
 // Copy constructor.
@@ -178,10 +178,9 @@ Pointer<T, size>::Pointer(const Pointer &ob)
     {
         cout << "Not using the memory address" << endl;
         // add a new PtrDetails instance to refCounter.
-        PtrDetails<T> pd(ob.addr);
+        PtrDetails<T> pd(ob.addr, size);
         cout << "Adding a new PtrDeatils to refContainer" << endl;
         cout << "pd.memPtr=" << pd.memPtr << endl;
-        cout << "refContainer.size()=" << refContainer.size() << endl;
         refContainer.emplace_back(pd);
     }
 
@@ -290,13 +289,21 @@ T *Pointer<T, size>::operator=(T *t)
     //     Pointer<int> p = new int(19);
     //     p = new int(21);
 
+    // find the current PtrDetails that contains this' addr
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(addr);
-
-    // decrement ref count
     (p->refcount)--;
 
+    p = findPtrInfo(t);
 
+    if(p!=refContainer.end()){
+        p->refcount++;
+    } else {
+        // Add a new PtrDeatils to refContainer
+        PtrDetails<T> pd(t, size);
+        refContainer.push_back(pd);
+    }
+    return t;
     cout << "\033[36m==============Overload assignment of pointer to Pointer.==============END\033[0m\n";
 }
 
@@ -304,6 +311,7 @@ T *Pointer<T, size>::operator=(T *t)
 template <class T, int size>
 Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv)
 {
+    cout << "\033[42m==============Overload assignment of Pointer to Pointer.==============START\033[0m\n";
     // TODO: Implement operator=
     // LAB: Smart Pointer Project Lab
     // Lab: References Project Lab (maybe)
@@ -315,7 +323,9 @@ Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv)
 
     // increment ref count
     // store the address.
-    // return
+    cout << "\033[42m==============Overload assignment of Pointer to Pointer.==============END\033[0m\n";
+    return rv;
+
 }
 
 // Display refContainer.

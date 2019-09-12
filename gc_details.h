@@ -2,6 +2,7 @@
 using namespace std; // remove me
 
 /*
+COLORS!
          foreground background
 black        30         40
 red          31         41
@@ -22,43 +23,26 @@ public:
     unsigned refcount = 0; // current reference count
     T *memPtr;             // pointer to allocated memory
 
-    // true if pointing to array
+    // Assign true if memPtr is pointing to array
     bool isArray;
 
-    // If memPtr is pointing to an allocated, size of array
+    // Assign arraySize if memPtr is pointing to a an array
     unsigned arraySize;
 
-    // PtrDetails(T *memPtr_) : memPtr(memPtr_)
-    PtrDetails(T *memPtr_) : memPtr(memPtr_)
+    PtrDetails(T *memPtr_, int size) : memPtr(memPtr_), arraySize(size)
     {
-        cout << "\033[36mConstructing PtrDetails memPtr=" << memPtr_ << "\033[0m\n";
         refcount++;
+        if(arraySize>0)
+            isArray = true;
     }
 
     // Copy Constructor
     PtrDetails(const PtrDetails &ob)
     {
-        cout << "\033[36mCopying PtrDetails memPtr" << ob.memPtr << "\033[0m\n";
         memPtr = ob.memPtr;
         refcount++;
-    }
-
-    // PtrDeatils destructor
-    // or del memPtr
-    // or del [] memPtr (no need to iterate through ptnr)
-    // we don't care about refcount here b/c that is the job of
-    // the GC -- keeping track of refcount
-    ~PtrDetails()
-    {
-        // cout << "\033[44m==============~PtrDetails()==============\033[0m\n";
-        // cout << "Trying to delete " << memPtr << endl;
-        // cout << "refcount=" << refcount << endl;
-        // if (isArray)
-        //     delete[] memPtr;
-        // else
-        //     delete memPtr;
-        // cout << "Deleted memPtr=" << memPtr << endl;
-        // cout << "\033[44m==============~PtrDetails()==============END\033[0m\n";
+        if(ob.arraySize>0)
+            isArray = true;
     }
 };
 
