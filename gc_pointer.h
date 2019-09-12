@@ -70,8 +70,6 @@ public:
     // to by this Pointer.
     // This overloaded operator is like a proxy
     T &operator*() { return *addr; }
-    // Pointer p();
-    // *pd
 
     // Return the address being pointed to.
     T *operator->() { return addr; }
@@ -93,6 +91,7 @@ public:
             _size = 1;
         return Iter<T>(addr, addr, addr + _size);
     }
+    
     // Return an Iter to one past the end of an allocated array.
     Iter<T> end()
     {
@@ -142,15 +141,9 @@ Pointer<T, size>::Pointer(T *t)
 
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(t);
-    // add a new PtrDetails instance to refCounter.
     PtrDetails<T> pd(t, size);
-    cout << "refContainerSize Before=" << refContainerSize() << endl;
     refContainer.emplace_back(pd);
-    cout << "refContainerSize After=" << refContainerSize() << endl;
-    // at this point, ~pd is called
     p = refContainer.end();
-    cout << "refContainer now has an element that points to=" << p->memPtr << "\trefcount=" << p->refcount << endl;
-    // At this point, pd is destructured
 }
 
 // Copy constructor.
@@ -162,10 +155,6 @@ Pointer<T, size>::Pointer(const Pointer &ob)
 
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(ob.addr);
-
-    // TODO: Implement copy constructor
-    // Lab: Smart Pointer Project Lab
-    // Lab: References Project Lab (maybe)
 
     // increment ref count
     if (p->memPtr == ob.addr)
@@ -183,8 +172,6 @@ Pointer<T, size>::Pointer(const Pointer &ob)
         cout << "pd.memPtr=" << pd.memPtr << endl;
         refContainer.emplace_back(pd);
     }
-
-    // decide whether it is an array
 }
 
 // Destructor for Pointer.
@@ -221,10 +208,6 @@ template <class T, int size>
 bool Pointer<T, size>::collect()
 {
     cout << "\033[36m==============collect()==============START\033[0m\n";
-    // TODO: Implement collect function
-    // LAB: New and Delete Project Lab
-    // Note: collect() will be called in the destructor
-
     bool memfreed = false;
     typename std::list<PtrDetails<T>>::iterator p;
     do
@@ -232,37 +215,19 @@ bool Pointer<T, size>::collect()
         // Scan refContainer looking for unreferenced pointers.
         for (p = refContainer.begin(); p != refContainer.end(); p++)
         {
-            // If in-use, skip.
-            // *** how to tell if in-use? By looking at refcount
-            cout << "p->refcount " << p->refcount << endl;
-
+            // If the memory is still in-use, continue through loop.
             if (p->refcount > 0)
-            {
-                cout << "p->refcount > 0 ... continue...\n";
                 continue;
-            }
 
-            // Remove unused entry from refContainer.
-            // *** How to do this?
-            // *** Do I make a copy of it first and then? No.
-            // since we have refCon, we can use erase, maybe remove
-            // this will call PtrDetails destructor
-            cout << "Erasing pointer=" << p->memPtr << endl;
-            // at this point, program fails b/c it says p has already been deleted.
-            cout << "refContainer size=" << refContainerSize() << endl;
-            refContainer.erase(p);
             if (p->memPtr)
             {
                 if (p->isArray)
-                {
                     delete[] p->memPtr;
-                }
                 else
-                {
                     delete p->memPtr;
-                }
                 memfreed = true;
             }
+            refContainer.erase(p);
             // p is not longer valid, we can't use it anymore
             cout << "Are we at the end of refContainer = " << (p != refContainer.end()) << endl;
 
@@ -280,22 +245,19 @@ bool Pointer<T, size>::collect()
 template <class T, int size>
 T *Pointer<T, size>::operator=(T *t)
 {
+    /* 
+    Example:
+        Pointer<int> p = new int(19);
+        p = new int(21);
+    */
+
     cout << "\033[36m==============Overload assignment of pointer to Pointer.==============START\033[0m\n";
-    // TODO: Implement operator =
-    // LAB: Smart Pointer Project Lab
-    // maybe check https://knowledge.udacity.com/questions/53363
-
-    // For example:
-    //     Pointer<int> p = new int(19);
-    //     p = new int(21);
-
     // find the current PtrDetails that contains this' addr
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(addr);
     (p->refcount)--;
 
     p = findPtrInfo(t);
-
     if(p!=refContainer.end()){
         p->refcount++;
     } else {
@@ -303,8 +265,9 @@ T *Pointer<T, size>::operator=(T *t)
         PtrDetails<T> pd(t, size);
         refContainer.push_back(pd);
     }
-    return t;
+    addr = t;
     cout << "\033[36m==============Overload assignment of pointer to Pointer.==============END\033[0m\n";
+    return t;
 }
 
 // Overload assignment of Pointer to Pointer.
@@ -312,17 +275,18 @@ template <class T, int size>
 Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv)
 {
     cout << "\033[42m==============Overload assignment of Pointer to Pointer.==============START\033[0m\n";
-    // TODO: Implement operator=
-    // LAB: Smart Pointer Project Lab
-    // Lab: References Project Lab (maybe)
+    typename std::list<PtrDetails<T>>::iterator p;
+    p = findPtrInfo(addr);
+    (p->refcount)--;
 
-    // First, decrement the reference count for the memory currently being pointed to.
-
-    // Then, increment the reference count of
-    // the new address.
-
-    // increment ref count
-    // store the address.
+    p = findPtrInfo(rv.addr);
+    if(p!=refContainer.end()){
+        p->refcount++;
+    } else {
+        // Add a new PtrDeatils to refContainer
+        PtrDetails<T> pd(rv, size);
+        refContainer.push_back(pd);
+    }    
     cout << "\033[42m==============Overload assignment of Pointer to Pointer.==============END\033[0m\n";
     return rv;
 
@@ -361,7 +325,6 @@ void Pointer<T, size>::showlist()
 }
 
 // Find a pointer in refContainer.
-// *** Return an iterator or maybe an iterator's element?
 template <class T, int size>
 typename std::list<PtrDetails<T>>::iterator
 Pointer<T, size>::findPtrInfo(T *ptr)
