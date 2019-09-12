@@ -1,5 +1,4 @@
 #include "gc_pointer.h"
-#include <list> // remove me
 #include "LeakTester.h"
 
 int main()
