@@ -91,7 +91,7 @@ public:
             _size = 1;
         return Iter<T>(addr, addr, addr + _size);
     }
-    
+
     // Return an Iter to one past the end of an allocated array.
     Iter<T> end()
     {
@@ -150,7 +150,6 @@ Pointer<T, size>::Pointer(T *t)
 template <class T, int size>
 Pointer<T, size>::Pointer(const Pointer &ob)
 {
-    std::cout << "\nCOPYING Pointer=..." << ob.addr << "\n";
     addr = ob.addr;
 
     typename std::list<PtrDetails<T>>::iterator p;
@@ -161,15 +160,11 @@ Pointer<T, size>::Pointer(const Pointer &ob)
     {
         // update PtrDetails<T>'s refCount
         (p->refcount)++;
-        cout << "Already using the memory address so the refcount is now " << p->refcount << endl;
     }
     else
     {
-        cout << "Not using the memory address" << endl;
         // add a new PtrDetails instance to refCounter.
         PtrDetails<T> pd(ob.addr, size);
-        cout << "Adding a new PtrDeatils to refContainer" << endl;
-        cout << "pd.memPtr=" << pd.memPtr << endl;
         refContainer.emplace_back(pd);
     }
 }
@@ -178,36 +173,24 @@ Pointer<T, size>::Pointer(const Pointer &ob)
 template <class T, int size>
 Pointer<T, size>::~Pointer()
 {
-    cout << "\033[34m==============~Pointer()==============START\033[0m\n";
-    typename std::list<PtrDetails<T>>::iterator pt;
-    pt = refContainer.begin();
-    cout << "refContainer has one element that points to=" << pt->memPtr << "\tand the refcount=" << pt->refcount << endl;
-
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(addr);
 
     // decrement ref count
     (p->refcount)--;
-    cout << "(p->refcount)--" << endl;
-    cout << "refContainer has one element that points to=" << pt->memPtr << "\tand the refcount=" << pt->refcount << endl;
 
     // Collect garbage when a pointer goes out of scope.
-    bool memfreed = collect();
-    cout << " was memoryfreed?=" << memfreed << endl;
-
     // TIP: For real use, you might want to collect unused memory less frequently,
     // such as after refContainer has reached a certain size, after a certain number of Pointers have gone out of scope,
     // or when memory is low.
-    cout << "\033[34m==============~Pointer()==============END\033[0m\n";
+    collect();
 }
 
 // Collect garbage. Returns true if at least
 // one object was freed.
-// When to call collect? One option, tie it to any delete.
 template <class T, int size>
 bool Pointer<T, size>::collect()
 {
-    cout << "\033[36m==============collect()==============START\033[0m\n";
     bool memfreed = false;
     typename std::list<PtrDetails<T>>::iterator p;
     do
@@ -228,16 +211,9 @@ bool Pointer<T, size>::collect()
                 memfreed = true;
             }
             refContainer.erase(p);
-            // p is not longer valid, we can't use it anymore
-            cout << "Are we at the end of refContainer = " << (p != refContainer.end()) << endl;
-
-            // Free memory unless the Pointer is null.
-            // *** How to do this? std::remove()
-            // Restart the search.
             break;
         }
     } while (p != refContainer.end());
-    cout << "\033[36m==============collect()==============END\033[0m\n";
     return memfreed;
 }
 
@@ -251,7 +227,6 @@ T *Pointer<T, size>::operator=(T *t)
         p = new int(21);
     */
 
-    cout << "\033[36m==============Overload assignment of pointer to Pointer.==============START\033[0m\n";
     // find the current PtrDetails that contains this' addr
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(addr);
@@ -266,15 +241,13 @@ T *Pointer<T, size>::operator=(T *t)
         refContainer.push_back(pd);
     }
     addr = t;
-    cout << "\033[36m==============Overload assignment of pointer to Pointer.==============END\033[0m\n";
-    return t;
+    return addr;
 }
 
 // Overload assignment of Pointer to Pointer.
 template <class T, int size>
 Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv)
 {
-    cout << "\033[42m==============Overload assignment of Pointer to Pointer.==============START\033[0m\n";
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(addr);
     (p->refcount)--;
@@ -287,9 +260,7 @@ Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv)
         PtrDetails<T> pd(rv, size);
         refContainer.push_back(pd);
     }    
-    cout << "\033[42m==============Overload assignment of Pointer to Pointer.==============END\033[0m\n";
     return rv;
-
 }
 
 // Display refContainer.
@@ -330,16 +301,11 @@ typename std::list<PtrDetails<T>>::iterator
 Pointer<T, size>::findPtrInfo(T *ptr)
 {
     typename std::list<PtrDetails<T>>::iterator p;
-
     // Maybe find ptr in refContainer.
     for (p = refContainer.begin(); p != refContainer.end(); p++)
         if (p->memPtr == ptr)
-        {
-            cout << "DID FIND PNTR" << endl;
             return p;
-        }
-    // Else, return just p?
-    cout << "DID NOT FIND PNTR" << endl;
+    // Else, return an unassigned p of type iterator
     return p;
 }
 
@@ -347,8 +313,6 @@ Pointer<T, size>::findPtrInfo(T *ptr)
 template <class T, int size>
 void Pointer<T, size>::shutdown()
 {
-    cout << "\033[33mShutting Down!\033[0m\n";
-
     if (refContainerSize() == 0)
         return; // list is empty
     typename std::list<PtrDetails<T>>::iterator p;
