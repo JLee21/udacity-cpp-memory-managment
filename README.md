@@ -40,3 +40,21 @@ int main()
     return 0;
 }
 ```
+
+# Result
+
+```
++---------------+
+| FINAL REPORT: |
++---------------+
+
+Total number of allocations: 13
+Total number of deallocations: 13
+Total number of allocations in bytes: 308
+Total number of deallocations in bytes: 308
+Maximum memory occupation during runtime in bytes: 268
+Memory occupation upon completion: 0
+
+
+GREAT JOB! YOU DO NOT HAVE MEMORY LEAKAGE
+```
