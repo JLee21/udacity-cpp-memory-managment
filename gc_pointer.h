@@ -34,14 +34,9 @@ private:
     unsigned arraySize;
 
     // true when first Pointer is created
-    // *** why do we need this?
     static bool first;
 
     // Return an iterator to PtrDetails in refContainer.
-    // *** What does this mean??
-    // NOTE
-    // "typename" is used to tell the class that "std::list<PtrDetails<T>>::iterator"
-    // is a type and not some static member of "class" "std::list<PtrDetails<T>>"
     typename std::list<PtrDetails<T>>::iterator findPtrInfo(T *ptr);
 
 public:
@@ -50,9 +45,7 @@ public:
 
     // Empty constructor
     // NOTE: templates aren't able to have prototypes with default arguments
-    // *** Why would we want a prototype?
-    // this is why constructor is designed like this:
-    // this line is for allowing the second line, the
+    // which is why constructor is designed like this:
     Pointer() { Pointer(NULL); }
     // want we want ultimately just want this
     Pointer(T *);
@@ -139,9 +132,6 @@ Pointer<T, size>::Pointer(T *t)
         atexit(shutdown);
     first = false;
 
-    // TODO: Implement Pointer constructor
-    // Lab: Smart Pointer Project Lab
-
     if (size)
     {
         arraySize = size;
@@ -150,29 +140,16 @@ Pointer<T, size>::Pointer(T *t)
     else
         isArray = false;
 
-    // First, try to find if we are already using "addr"
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(t);
-    cout << "p->memPtr=" << p->memPtr << endl;
-    if (p->memPtr == t)
-    {
-        cout << "Already using the memory address" << endl;
-        // update PtrDetails<T>'s refCount
-        cout << p->refcount << endl;
-    }
-    else
-    {
-        cout << "Not using the memory address... so creating" << endl;
-        // add a new PtrDetails instance to refCounter.
-        PtrDetails<T> pd(t);
-        cout << "refContainerSize Before=" << refContainerSize() << endl;
-        refContainer.emplace_back(pd);
-        cout << "refContainerSize After=" << refContainerSize() << endl;
-        // at this point, ~pd is called
-        typename std::list<PtrDetails<T>>::iterator p;
-        p = refContainer.begin();
-        cout << "refContainer now has one element that points to=" << p->memPtr << "\trefcount=" << p->refcount << endl;
-    }
+    // add a new PtrDetails instance to refCounter.
+    PtrDetails<T> pd(t);
+    cout << "refContainerSize Before=" << refContainerSize() << endl;
+    refContainer.emplace_back(pd);
+    cout << "refContainerSize After=" << refContainerSize() << endl;
+    // at this point, ~pd is called
+    p = refContainer.begin();
+    cout << "refContainer now has one element that points to=" << p->memPtr << "\trefcount=" << p->refcount << endl;
     // *** At this point, pd is destructured
 }
 
@@ -216,17 +193,9 @@ template <class T, int size>
 Pointer<T, size>::~Pointer()
 {
     cout << "\033[34m==============~Pointer()==============START\033[0m\n";
-    //
-    typename std::list<PtrDetails<T>>::iterator pit;
-    pit = refContainer.begin();
-    cout << "refContainer has one element that points to=" << pit->memPtr << "\tand the refcount=" << pit->refcount << endl;
-    //
-
-    if (isArray)
-        cout << " WHICH IS ARRAY";
-
-    // TODO: Implement Pointer destructor
-    // Lab: New and Delete Project Lab
+    typename std::list<PtrDetails<T>>::iterator pt;
+    pt = refContainer.begin();
+    cout << "refContainer has one element that points to=" << pt->memPtr << "\tand the refcount=" << pt->refcount << endl;
 
     typename std::list<PtrDetails<T>>::iterator p;
     p = findPtrInfo(addr);
@@ -234,7 +203,7 @@ Pointer<T, size>::~Pointer()
     // decrement ref count
     (p->refcount)--;
     cout << "(p->refcount)--" << endl;
-    cout << "refContainer has one element that points to=" << pit->memPtr << "\tand the refcount=" << pit->refcount << endl;
+    cout << "refContainer has one element that points to=" << pt->memPtr << "\tand the refcount=" << pt->refcount << endl;
 
     // Collect garbage when a pointer goes out of scope.
     bool memfreed = collect();
@@ -312,21 +281,34 @@ bool Pointer<T, size>::collect()
 template <class T, int size>
 T *Pointer<T, size>::operator=(T *t)
 {
-    // TODO: Implement operator==
+    cout << "\033[36m==============Overload assignment of pointer to Pointer.==============START\033[0m\n";
+    // TODO: Implement operator =
     // LAB: Smart Pointer Project Lab
     // maybe check https://knowledge.udacity.com/questions/53363
+
+    // For example:
+    //     Pointer<int> p = new int(19);
+    //     p = new int(21);
+
+    typename std::list<PtrDetails<T>>::iterator p;
+    p = findPtrInfo(addr);
+
+    // decrement ref count
+    (p->refcount)--;
+
+
+    cout << "\033[36m==============Overload assignment of pointer to Pointer.==============END\033[0m\n";
 }
 
 // Overload assignment of Pointer to Pointer.
 template <class T, int size>
 Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv)
 {
-    // TODO: Implement operator==
+    // TODO: Implement operator=
     // LAB: Smart Pointer Project Lab
     // Lab: References Project Lab (maybe)
 
-    // First, decrement the reference count
-    // for the memory currently being pointed to.
+    // First, decrement the reference count for the memory currently being pointed to.
 
     // Then, increment the reference count of
     // the new address.
